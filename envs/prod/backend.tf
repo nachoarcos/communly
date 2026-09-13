@@ -3,7 +3,7 @@ terraform {
     bucket         = "communly-tfstate-<cuenta>"
     key            = "envs/prod/terraform.tfstate"
     region         = "eu-west-1"
-    dynamodb_table = "communly-tfstate-locks"
+    use_lockfile   = true
     encrypt        = true
   }
 }
