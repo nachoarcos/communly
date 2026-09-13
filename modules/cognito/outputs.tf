@@ -16,7 +16,7 @@ output "hosted_ui_domain" {
 }
 
 output "admins_group_name" {
-  value = aws_cognito_user_pool_group.admins.name
+  value = aws_cognito_user_group.admins.name
 }
 
 output "pre_signup_function_name" {

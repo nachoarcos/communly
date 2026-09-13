@@ -1,4 +1,4 @@
-resource "aws_cognito_user_pool_group" "admins" {
+resource "aws_cognito_user_group" "admins" {
   name         = "admins"
   user_pool_id = aws_cognito_user_pool.this.id
   description  = "Usuarios con acceso al panel de moderacion (list_moderation_queue, resolve_report)"
