@@ -1,0 +1,61 @@
+name: infra
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "modules/**"
+      - "envs/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "modules/**"
+      - "envs/**"
+
+permissions:
+  id-token: write # imprescindible para OIDC (sts:AssumeRoleWithWebIdentity)
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: envs/prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+
+      - name: terraform fmt (check)
+        run: terraform fmt -check -recursive ../..
+
+      - name: terraform init
+        run: terraform init
+
+      - name: terraform validate
+        run: terraform validate
+
+      - name: terraform plan
+        run: terraform plan -input=false -out=tfplan
+        env:
+          TF_VAR_owner: ${{ vars.PROJECT_OWNER }}
+          TF_VAR_ses_from_address: ${{ vars.SES_FROM_ADDRESS }}
+          TF_VAR_alarm_email: ${{ vars.ALARM_EMAIL }}
+          # bootstrap/ (backend de tfstate + rol OIDC) es deliberadamente
+          # manual y no pasa por este workflow, ver README de despliegue.
+
+      # Solo aplica en push a main, nunca en un pull_request: un PR
+      # solo debe mostrar el plan (revisable en el log/comentario), no
+      # modificar infraestructura real.
+      - name: terraform apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -input=false -auto-approve tfplan

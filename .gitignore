@@ -1,0 +1,34 @@
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# El estado de bootstrap/ es local (ver bootstrap/providers.tf) y
+# contiene ARNs sensibles: nunca se sube al repositorio.
+bootstrap/terraform.tfstate*
+bootstrap/.terraform/
+
+# Placeholders generados por Terraform (archive_file) para las Lambdas
+# antes del primer despliegue real de codigo.
+**/.placeholder.zip
+
+# Frontend
+app/frontend/node_modules/
+app/frontend/dist/
+app/frontend/.env
+app/frontend/.env.local
+
+# Artefactos de empaquetado de Lambda (build local, no se versionan)
+**/function.zip
+
+# Sistema
+.DS_Store
+*.log
