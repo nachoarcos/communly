@@ -21,5 +21,19 @@ def is_admin(event):
     raw = get_claims(event).get("cognito:groups")
     if not raw:
         return False
-    groups = raw if isinstance(raw, list) else str(raw).split(",")
+
+    if isinstance(raw, list):
+        groups = raw
+    else:
+        # El JWT Authorizer de API Gateway (HTTP API) convierte los
+        # claims que son arrays JSON en el token original (como
+        # cognito:groups) a un string CON CORCHETES, p.ej. "[admins]"
+        # o "[admins, editors]" -- no a una lista limpia separada por
+        # comas. Hay que quitar los corchetes (y espacios sueltos)
+        # antes de separar. Sin esto, "admins" in groups siempre da
+        # False aunque el usuario si pertenezca al grupo (los
+        # corchetes nunca coinciden con nada).
+        cleaned = str(raw).strip("[]")
+        groups = [g.strip() for g in cleaned.split(",") if g.strip()]
+
     return "admins" in groups
