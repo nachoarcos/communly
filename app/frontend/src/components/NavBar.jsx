@@ -13,6 +13,7 @@ export default function NavBar() {
           Communly
         </Link>
         <nav className="nav-links">
+          <Link to="/">Inicio</Link>
           {authed ? (
             <>
               <Link to="/new">Escribir</Link>

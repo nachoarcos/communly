@@ -72,7 +72,18 @@ def handler(event, context):
         if shard_items_in_page:
             last = shard_items_in_page[-1]
             next_cursor[str(r["shard"])] = {
-                "key": {"PK": last["PK"], "SK": last["SK"]},
+                # DynamoDB exige que el ExclusiveStartKey de una Query
+                # sobre un GSI incluya TANTO la clave de la tabla base
+                # (PK/SK) COMO la clave del propio indice (GSI1PK/
+                # GSI1SK). Guardar solo PK/SK produce una
+                # ValidationException en la siguiente pagina (se ve
+                # como un 500 sin mas detalle en el cliente).
+                "key": {
+                    "PK": last["PK"],
+                    "SK": last["SK"],
+                    "GSI1PK": last["GSI1PK"],
+                    "GSI1SK": last["GSI1SK"],
+                },
                 "done": False,
             }
         elif r["exhausted"]:
