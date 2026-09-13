@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
-    bucket         = "communly-tfstate-<cuenta>"
+    bucket         = "communly-tfstate-537595753912"
     key            = "envs/dev/terraform.tfstate"
-    region         = "us-east-1"
+    region         = "eu-west-1"
     dynamodb_table = "communly-tfstate-locks"
     encrypt        = true
   }
