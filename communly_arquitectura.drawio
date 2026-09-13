@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-09-09T00:00:00.000Z" agent="Claude" version="24.0.0" type="device">
+  <diagram name="Arquitectura Communly (serverless)" id="communly-arch-serverless">
+    <mxGraphModel dx="1500" dy="1150" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Titulo -->
+        <mxCell id="n0" value="Communly &#8212; Arquitectura serverless (Lambda + DynamoDB + API Gateway + Cognito + CloudFront)" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="0" width="1100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Usuarios -->
+        <mxCell id="n1" value="Usuario anonimo&#10;(lector)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#545B64;strokeColor=#333333;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="Usuario registrado&#10;(autor)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#545B64;strokeColor=#333333;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="40" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Edge -->
+        <mxCell id="n3" value="AWS WAF" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DD344C;strokeColor=#9E1B32;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="140" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="CloudFront (CDN)&#10;Edge publico del proyecto" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C4FFF;strokeColor=#5A30B5;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="230" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Origenes de CloudFront -->
+        <mxCell id="n5" value="S3 &#8212; Frontend estatico&#10;(SPA)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7AA116;strokeColor=#4B6B0E;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="200" y="330" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="API Gateway (HTTP API)&#10;Cognito JWT Authorizer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8C4FFF;strokeColor=#5A30B5;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="330" width="260" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="S3 &#8212; Imagenes de posts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7AA116;strokeColor=#4B6B0E;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="980" y="330" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Cognito -->
+        <mxCell id="n8" value="Cognito User Pool&#10;+ Hosted UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DD344C;strokeColor=#9E1B32;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="850" y="450" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" value="Lambda triggers&#10;pre-signup / post-confirmation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#B36B00;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="560" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Lambdas de API -->
+        <mxCell id="n10" value="19 Lambdas de API&#10;(una por access pattern)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#B36B00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="450" width="280" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- DynamoDB -->
+        <mxCell id="n11" value="DynamoDB&#10;single-table + Streams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3B48CC;strokeColor=#232F94;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="660" width="260" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Stream consumers -->
+        <mxCell id="n12" value="Lambda: fan-out&#10;(feed personalizado)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#B36B00;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="380" y="790" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n13" value="Lambda: notifications&#10;(email por comentario)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#B36B00;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="780" y="790" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n14" value="SQS DLQ&#10;(fan-out / notifications)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7157B;strokeColor=#9E0F55;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="580" y="890" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n15" value="Amazon SES" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7157B;strokeColor=#9E0F55;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="890" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Observabilidad -->
+        <mxCell id="n16" value="CloudWatch&#10;Logs &amp; Alarms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7157B;strokeColor=#9E0F55;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="380" y="990" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n17" value="SNS &#8594; email equipo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7157B;strokeColor=#9E0F55;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="990" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n18" value="AWS Budgets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E7157B;strokeColor=#9E0F55;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="900" y="990" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- CI/CD -->
+        <mxCell id="n19" value="GitHub Actions&#10;(push a main)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#232F3E;strokeColor=#0C1621;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1090" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n20" value="S3 &#8212; Codigo Lambda&#10;(.zip por funcion)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7AA116;strokeColor=#4B6B0E;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="380" y="1090" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Leyenda -->
+        <mxCell id="n21" value="Leyenda&#10;Morado: red / edge&#10;Naranja: computo (Lambda)&#10;Azul: base de datos&#10;Verde: almacenamiento (S3)&#10;Rojo: identidad / seguridad&#10;Rosa: mensajeria / monitorizacion&#10;Gris oscuro: CI/CD" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CCCCCC;align=left;verticalAlign=top;fontSize=11;spacingLeft=6;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="990" width="230" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;" edge="1" parent="1" source="n1" target="n4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;" edge="1" parent="1" source="n2" target="n4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="protege" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n3" target="n4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="estatico /*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n4" target="n5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="/api/*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n4" target="n6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="/images/*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n4" target="n7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="valida JWT (issuer/JWKS)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n8" target="n6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="pre-signup / post-confirmation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n8" target="n9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="lee / escribe perfil" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n9" target="n11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=11;" edge="1" parent="1" source="n6" target="n10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="lee / escribe" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="URL prefirmada" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n10" target="n7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="Streams: post published" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n11" target="n12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="Streams: nuevo comentario" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n11" target="n13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" value="escribe FEED#" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n12" target="n11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="escribe NOTIFICATION#" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n13" target="n11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n13" target="n15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="on_failure" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n12" target="n14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" value="on_failure" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n13" target="n14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="alarma DLQ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n14" target="n17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n10" target="n16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="alarma throttling" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n11" target="n16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="alarma 5xx" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n6" target="n16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" value="alarma" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n16" target="n17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" value="sube .zip" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n19" target="n20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" value="update-function-code" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n20" target="n10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n20" target="n9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" value="npm build + sync" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="n19" target="n5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" value="invalida cache" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="n19" target="n4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
