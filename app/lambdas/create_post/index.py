@@ -38,6 +38,7 @@ def handler(event, context):
 
     current = table.get_item(Key={"PK": f"USER#{user_sub}", "SK": "PROFILE"}).get("Item") or {}
     author_username = current.get("username")
+    author_avatar_url = current.get("avatar_url")
 
     post_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
@@ -53,6 +54,12 @@ def handler(event, context):
         # los posts ya publicados conservan el nombre de entonces (es
         # el trade-off aceptado de la denormalizacion).
         "author_username": author_username,
+        # Mismo patron que el username: se denormaliza en escritura
+        # para que el feed/perfil no tengan que resolver el avatar por
+        # cada post con una peticion aparte. Si el autor cambia de
+        # avatar despues, los posts ya publicados conservan el de
+        # entonces (mismo trade-off que el username).
+        "author_avatar_url": author_avatar_url,
         "title": title,
         "body_markdown": body_markdown,
         "status": status,

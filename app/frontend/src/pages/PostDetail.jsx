@@ -11,6 +11,7 @@ import {
 } from "../lib/api";
 import { isAuthenticated, getClaims } from "../lib/auth";
 import Markdown from "../components/Markdown";
+import Avatar from "../components/Avatar";
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -121,10 +122,13 @@ export default function PostDetail() {
   return (
     <div className="shell">
       <h1 className="post-title">{post.title}</h1>
-      <div className="post-meta">
-        por <Link to={`/u/${post.author_username || "usuario"}`}>@{post.author_username || "usuario"}</Link>
-        {post.published_at &&
-          ` · ${new Date(post.published_at).toLocaleDateString("es-ES")}`}
+      <div className="post-meta" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Avatar src={post.author_avatar_url} size={24} />
+        <span>
+          por <Link to={`/u/${post.author_username || "usuario"}`}>@{post.author_username || "usuario"}</Link>
+          {post.published_at &&
+            ` · ${new Date(post.published_at).toLocaleDateString("es-ES")}`}
+        </span>
       </div>
 
       {error && <div className="error-banner" style={{ marginTop: 16 }}>{error}</div>}
@@ -188,9 +192,12 @@ export default function PostDetail() {
 
       {comments.map((c) => (
         <div className="comment" key={c.comment_id}>
-          <div className="post-meta">
-            @{c.author_username || "usuario"} ·{" "}
-            {new Date(c.created_at).toLocaleDateString("es-ES")}
+          <div className="post-meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Avatar src={c.author_avatar_url} size={20} />
+            <span>
+              @{c.author_username || "usuario"} ·{" "}
+              {new Date(c.created_at).toLocaleDateString("es-ES")}
+            </span>
           </div>
           <Markdown source={c.body} />
         </div>

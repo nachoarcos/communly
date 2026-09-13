@@ -38,6 +38,7 @@ def handler(event, context):
         "post_id": post_id,
         "author_sub": user_sub,
         "author_username": current.get("username"),
+        "author_avatar_url": current.get("avatar_url"),
         "body": comment_body,
         "created_at": now,
         # Proyeccion para "comentarios de un usuario".

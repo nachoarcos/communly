@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { getUserProfile, listUserPosts, toggleFollow } from "../lib/api";
 import { isAuthenticated, getClaims } from "../lib/auth";
 import PostCard from "../components/PostCard";
+import Avatar from "../components/Avatar";
 
 export default function Profile() {
   const { username } = useParams();
@@ -41,7 +42,10 @@ export default function Profile() {
 
   return (
     <div className="shell">
-      <h1 className="post-title">@{profile.username}</h1>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <Avatar src={profile.avatarUrl} size={56} />
+        <h1 className="post-title" style={{ margin: 0 }}>@{profile.username}</h1>
+      </div>
       {profile.bio && <p>{profile.bio}</p>}
 
       {authed && !isOwnProfile && (
