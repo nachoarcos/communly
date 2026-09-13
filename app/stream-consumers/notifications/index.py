@@ -1,12 +1,17 @@
 import os
+import logging
 from datetime import datetime, timezone
 import boto3
+from botocore.exceptions import ClientError
 from boto3.dynamodb.types import TypeDeserializer
 from shared.dynamo import table
 
 ses = boto3.client("ses")
 FROM_ADDRESS = os.environ.get("SES_FROM_ADDRESS")
+MOCK_MODE = os.environ.get("SES_MOCK_MODE", "false").lower() == "true"
 _deserializer = TypeDeserializer()
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def _deserialize_image(image):
@@ -58,11 +63,40 @@ def handler(event, context):
         if not recipient_email:
             continue
 
-        ses.send_email(
-            Source=FROM_ADDRESS,
-            Destination={"ToAddresses": [recipient_email]},
-            Message={
-                "Subject": {"Data": "Nuevo comentario en tu post de Communly"},
-                "Body": {"Text": {"Data": "Alguien ha comentado tu post. Entra en Communly para verlo."}},
-            },
-        )
+        # Email: mejor esfuerzo, no critico. Si SES_MOCK_MODE esta
+        # activo (entornos donde SES no esta concedido, p.ej. el
+        # laboratorio de dev), NO SE INTENTA la llamada real en
+        # absoluto -- se deja constancia en el log de que se habria
+        # enviado, y se sigue. Si el mock esta desactivado pero la
+        # llamada real falla igualmente (permiso, sandbox, destinatario
+        # sin verificar...), el try/except evita que un fallo puramente
+        # accesorio tumbe el registro de la notificacion, que ya se ha
+        # guardado un par de lineas antes.
+        if MOCK_MODE:
+            logger.info(
+                "MOCK SES_MOCK_MODE=true: se habria enviado email a %s (post_id=%s, comment_id=%s)",
+                recipient_email,
+                post_id,
+                comment_id,
+            )
+        else:
+            try:
+                ses.send_email(
+                    Source=FROM_ADDRESS,
+                    Destination={"ToAddresses": [recipient_email]},
+                    Message={
+                        "Subject": {"Data": "Nuevo comentario en tu post de Communly"},
+                        "Body": {
+                            "Text": {
+                                "Data": "Alguien ha comentado tu post. Entra en Communly para verlo."
+                            }
+                        },
+                    },
+                )
+            except ClientError as e:
+                logger.warning(
+                    "No se pudo enviar el email de notificacion (post_id=%s, comment_id=%s): %s",
+                    post_id,
+                    comment_id,
+                    e,
+                )

@@ -15,7 +15,7 @@ variable "owner" {
 variable "aws_region" {
   description = "Verificar contra las regiones permitidas en el laboratorio -- muchos entornos de formacion restringen a una unica region."
   type        = string
-  default     = "eu-west-1"
+  default     = "us-east-1"
 }
 
 variable "ses_from_address" {
@@ -70,6 +70,24 @@ variable "student_lambda_role_name" {
 
 variable "attach_extra_permissions_to_shared_role" {
   description = "Si es true, intenta anadir una policy inline al rol compartido con los permisos que las Lambdas necesitan (DynamoDB/S3/SES/SQS). Requiere iam:PutRolePolicy sobre ESE rol concreto (distinto de iam:CreateRole, puede estar permitido aunque crear roles nuevos no lo este). Si falla, poner a false y verificar a mano en la consola IAM que el rol ya cubre esos permisos."
+  type        = bool
+  default     = true
+}
+
+variable "enable_stream_triggers" {
+  description = "Si es false, las Lambdas fan-out/notifications se crean pero NO se conectan al Stream de DynamoDB. Poner a false si el rol compartido no tiene (ni se le puede conceder) dynamodb:GetRecords/GetShardIterator/DescribeStream/ListStreams -- ver modules/stream-consumers/variables.tf."
+  type        = bool
+  default     = true
+}
+
+variable "enable_waf" {
+  description = "Si es false, NO se crea el modulo security (WAF Web ACL) y storage recibe waf_web_acl_arn = null. Poner a false si el laboratorio no permite wafv2:* o restringe el uso de us-east-1 de una forma que bloquee este modulo."
+  type        = bool
+  default     = true
+}
+
+variable "mock_ses_notifications" {
+  description = "Si es true, la Lambda de notificaciones no intenta enviar el email real via SES -- solo lo registra en el log. Ver modules/stream-consumers/variables.tf. Por defecto activo en dev porque este entorno no suele tener SES concedido."
   type        = bool
   default     = true
 }

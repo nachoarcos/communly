@@ -24,6 +24,8 @@ resource "aws_lambda_function" "fan_out" {
 }
 
 resource "aws_lambda_event_source_mapping" "fan_out" {
+  count = var.enable_event_source_mappings ? 1 : 0
+
   event_source_arn  = var.dynamodb_stream_arn
   function_name     = aws_lambda_function.fan_out.arn
   starting_position = "LATEST"

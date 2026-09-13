@@ -50,7 +50,9 @@ module "stream_consumers" {
   ses_from_address    = var.ses_from_address
   sns_alarm_topic_arn = module.observability.alarms_topic_arn
 
-  shared_execution_role_arn = local.lambda_role_arn
+  shared_execution_role_arn    = local.lambda_role_arn
+  enable_event_source_mappings = var.enable_stream_triggers
+  mock_ses_notifications        = var.mock_ses_notifications
 }
 
 # ---------------------------------------------------------------------------
@@ -124,11 +126,12 @@ module "api_gateway" {
 
 # ---------------------------------------------------------------------------
 # security: Web ACL de WAF. Sin cambios respecto a prod -- no requiere
-# IAM, solo permisos wafv2:*. Verificar que el laboratorio los permite;
-# si no, poner enable_waf = false (ver storage mas abajo) y quitar este
-# modulo.
+# IAM, solo permisos wafv2:*. Condicionado a var.enable_waf (por defecto
+# true; ponerlo a false si el laboratorio no permite wafv2:* o
+# restringe us-east-1 de una forma que bloquee este modulo).
 # ---------------------------------------------------------------------------
 module "security" {
+  count  = var.enable_waf ? 1 : 0
   source = "../../modules/security"
   providers = {
     aws.us_east_1 = aws.us_east_1
@@ -142,7 +145,7 @@ module "security" {
 # ---------------------------------------------------------------------------
 # storage: sin cambios respecto a prod -- las politicas de bucket y el
 # Origin Access Control de CloudFront son recursos de S3/CloudFront, no
-# de IAM.
+# de IAM. waf_web_acl_arn es null si var.enable_waf = false.
 # ---------------------------------------------------------------------------
 module "storage" {
   source = "../../modules/storage"
@@ -153,7 +156,7 @@ module "storage" {
 
   api_gateway_endpoint        = module.api_gateway.api_endpoint
   images_cors_allowed_origins = var.cors_allowed_origins
-  waf_web_acl_arn             = module.security.web_acl_arn
+  waf_web_acl_arn             = var.enable_waf ? module.security[0].web_acl_arn : null
 }
 
 # ---------------------------------------------------------------------------

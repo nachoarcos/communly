@@ -16,15 +16,16 @@ Communly es una plataforma de comunidad y publicación de contenidos, en la lín
 4. [Modelo de datos](#modelo-de-datos)
 5. [Red y superficie de exposición](#red-y-superficie-de-exposición)
 6. [Escalabilidad](#escalabilidad)
-7. [Estructura del repositorio](#estructura-del-repositorio)
-8. [Instrucciones de despliegue](#instrucciones-de-despliegue)
-9. [Estimación de coste mensual](#estimación-de-coste-mensual)
-10. [Seguridad](#seguridad)
-11. [Observabilidad](#observabilidad)
-12. [FinOps](#finops)
-13. [Instrucciones de destrucción](#instrucciones-de-destrucción)
-14. [Limitaciones conocidas](#limitaciones-conocidas)
-15. [Mejoras futuras](#mejoras-futuras)
+7. [Entorno de laboratorio (`dev`) frente a producción](#entorno-de-laboratorio-dev-frente-a-producción)
+8. [Estructura del repositorio](#estructura-del-repositorio)
+9. [Instrucciones de despliegue](#instrucciones-de-despliegue)
+10. [Estimación de coste mensual](#estimación-de-coste-mensual)
+11. [Seguridad](#seguridad)
+12. [Observabilidad](#observabilidad)
+13. [FinOps](#finops)
+14. [Instrucciones de destrucción](#instrucciones-de-destrucción)
+15. [Limitaciones conocidas](#limitaciones-conocidas)
+16. [Mejoras futuras](#mejoras-futuras)
 
 ---
 
@@ -190,7 +191,24 @@ Aquí también conviene separar "cómo escala en la práctica" de "cuáles son l
 
 ---
 
-## Estructura del repositorio
+## Entorno de laboratorio (`dev`) frente a producción
+
+`envs/prod` y `envs/dev` instancian exactamente los mismos ocho módulos de Terraform — no hay un segundo conjunto de módulos "para dev". La diferencia está en unas pocas variables, declaradas explícitamente en `envs/dev/variables.tf`, que en `prod` ni existen ni se usan. La razón de fondo es que `dev` corre sobre una cuenta de laboratorio con **IAM restringido a un catálogo fijo de roles predefinidos** (no se puede `iam:CreateRole`), así que todo lo que en `prod` resolvemos creando un recurso IAM propio, en `dev` hay que resolverlo de otra forma o, sencillamente, aceptar que no está disponible.
+
+| | `prod` | `dev` |
+|---|---|---|
+| Rol de cada Lambda | Uno propio por función, mínimo privilegio | Uno compartido (`studentLambdaExecutionRole`), sin aislamiento por función |
+| Conexión Lambda↔DynamoDB Streams | Siempre activa | `enable_stream_triggers` (por defecto `true`, se pone a `false` si el rol compartido no tiene los permisos de Streams) |
+| Envío de email por SES | Real | `mock_ses_notifications` (por defecto `true`): la Lambda de notificaciones **no llama a SES en absoluto**, solo registra en el log qué habría enviado — el registro de la notificación en DynamoDB se guarda igual |
+| WAF delante de CloudFront | Siempre activo | `enable_waf` (por defecto `true`, se pone a `false` si el laboratorio no permite `wafv2:*`) |
+| CI/CD | GitHub Actions vía OIDC | Manual, en local, con la sesión SSO del laboratorio (ver `envs/dev/README.md`) |
+| Región | `eu-west-1` | La que permita el laboratorio (verificar; no asumir `us-east-1` por defecto) |
+
+Ninguno de estos interruptores tiene efecto en `prod`: cada uno vive detrás de una variable con valor por defecto que reproduce el comportamiento normal (`shared_execution_role_arn = null`, `enable_stream_triggers = true`, etc.), y `envs/prod` simplemente no las declara. Si algún día `dev` deja de tener estas restricciones, basta con no pasar esas variables (o ponerlas a su valor por defecto) para que se comporte exactamente igual que `prod`.
+
+Documentado también, con más detalle operativo (comandos concretos, qué política de IAM pedir, cómo desplegar sin CI/CD), en [`envs/dev/README.md`](./envs/dev/README.md).
+
+
 
 ```
 .

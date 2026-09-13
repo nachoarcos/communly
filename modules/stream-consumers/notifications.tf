@@ -13,6 +13,7 @@ resource "aws_lambda_function" "notifications" {
     variables = {
       TABLE_NAME       = var.dynamodb_table_name
       SES_FROM_ADDRESS = var.ses_from_address
+      SES_MOCK_MODE    = tostring(var.mock_ses_notifications)
     }
   }
 
@@ -24,6 +25,8 @@ resource "aws_lambda_function" "notifications" {
 }
 
 resource "aws_lambda_event_source_mapping" "notifications" {
+  count = var.enable_event_source_mappings ? 1 : 0
+
   event_source_arn  = var.dynamodb_stream_arn
   function_name     = aws_lambda_function.notifications.arn
   starting_position = "LATEST"

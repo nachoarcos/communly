@@ -37,6 +37,18 @@ variable "shared_execution_role_arn" {
   default     = null
 }
 
+variable "enable_event_source_mappings" {
+  description = "Si es false, NO se crea la conexion Lambda<->DynamoDB Streams (aws_lambda_event_source_mapping). Las funciones fan-out/notifications se crean igualmente, pero no se disparan automaticamente. Pensado para cuando el rol de ejecucion compartido no tiene permisos dynamodb:GetRecords/GetShardIterator/DescribeStream/ListStreams y no hay forma de concederselos (ver iam.tf)."
+  type        = bool
+  default     = true
+}
+
+variable "mock_ses_notifications" {
+  description = "Si es true, la Lambda de notificaciones NO intenta llamar a ses:SendEmail en absoluto -- se limita a registrar en el log que habria enviado el correo. Pensado para entornos donde SES no esta concedido (o no interesa verificar direcciones de prueba). El registro de la notificacion en DynamoDB se guarda igual, con o sin este flag: lo unico que se mockea es el envio de email."
+  type        = bool
+  default     = false
+}
+
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
   common_tags = {
