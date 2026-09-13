@@ -97,3 +97,33 @@ variable "manage_lambda_code_with_terraform" {
   type        = bool
   default     = true
 }
+
+variable "manage_frontend_with_terraform" {
+  description = "Si es true, Terraform ejecuta el build del frontend (npm install/build), lo sincroniza con S3 e invalida CloudFront, en el mismo apply -- via local-exec (ver modules/storage/frontend_deploy.tf). Requiere node/npm y aws cli en el PATH. Por defecto activo en dev."
+  type        = bool
+  default     = true
+}
+
+variable "frontend_build_redirect_uri" {
+  description = "VITE_REDIRECT_URI horneado en el build del frontend. Cambiar en la fase 2 del bootstrap al dominio real de CloudFront -- el cambio de valor dispara automaticamente un rebuild y redeploy."
+  type        = string
+  default     = "http://localhost:5173/callback"
+}
+
+variable "frontend_build_logout_uri" {
+  description = "VITE_LOGOUT_URI horneado en el build del frontend. Mismo criterio que frontend_build_redirect_uri."
+  type        = string
+  default     = "http://localhost:5173"
+}
+
+variable "aws_cli_profile" {
+  description = "Perfil de AWS CLI usado por los comandos 'aws s3 sync'/'aws cloudfront create-invalidation' del despliegue del frontend. Vacio = usar las credenciales por defecto de la sesion (p.ej. AWS_PROFILE ya exportado tras aws sso login)."
+  type        = string
+  default     = ""
+}
+
+variable "local_exec_shell" {
+  description = "SO donde correra 'terraform apply' (ver modules/storage/variables.tf). 'windows' por defecto -- desarrollo local. Cambiar a 'unix' si se ejecuta desde .github/workflows/dev-deploy.yml (runner ubuntu-latest)."
+  type        = string
+  default     = "windows"
+}

@@ -1,6 +1,12 @@
 import { getValidIdToken } from "./auth";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// replace(/\/+$/, "") quita cualquier barra final: si VITE_API_BASE_URL
+// viniera con "/" al final (p.ej. el invoke_url del stage $default de
+// una HTTP API SIEMPRE la lleva), concatenar con rutas que tambien
+// empiezan por "/" produciria "...//ruta", que no coincide con ninguna
+// ruta real de API Gateway y se manifiesta como un fallo de CORS
+// confuso en vez de un 404 claro.
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 
 export class ApiError extends Error {
   constructor(status, message) {

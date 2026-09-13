@@ -160,6 +160,22 @@ module "storage" {
   api_gateway_endpoint        = module.api_gateway.api_endpoint
   images_cors_allowed_origins = var.cors_allowed_origins
   waf_web_acl_arn             = var.enable_waf ? module.security[0].web_acl_arn : null
+
+  manage_frontend_with_terraform  = var.manage_frontend_with_terraform
+  # trimsuffix: el invoke_url del stage $default de una HTTP API viene
+  # SIEMPRE con barra final ("https://.../"), y nuestras rutas del
+  # frontend tambien empiezan por barra ("/me/profile") -- sin quitarla
+  # aqui, la concatenacion produce "...//me/profile", que no coincide
+  # con ninguna ruta de API Gateway y provoca un fallo de CORS confuso
+  # (el preflight no encuentra ruta, no hay cabecera CORS, y el
+  # navegador lo reporta como bloqueo CORS en vez de "ruta no encontrada").
+  frontend_vite_api_base_url      = trimsuffix(module.api_gateway.api_endpoint, "/")
+  frontend_vite_cognito_domain    = "https://${module.cognito.hosted_ui_domain}"
+  frontend_vite_cognito_client_id = module.cognito.user_pool_client_id
+  frontend_vite_redirect_uri      = var.frontend_build_redirect_uri
+  frontend_vite_logout_uri        = var.frontend_build_logout_uri
+  aws_cli_profile                 = var.aws_cli_profile
+  local_exec_shell                 = var.local_exec_shell
 }
 
 # ---------------------------------------------------------------------------

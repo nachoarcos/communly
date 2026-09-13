@@ -12,9 +12,20 @@ def handler(event, context):
     attrs = event["request"]["userAttributes"]
     username = attrs.get("custom:username", "")
 
-    # required=false es obligatorio para atributos custom en Cognito
-    # (ver modules/cognito/user_pool.tf); la obligatoriedad real se
-    # impone aqui, lanzando una excepcion bloquea el registro.
+    # El Hosted UI CLASICO de Cognito no permite recoger atributos
+    # custom en el formulario de registro (solo email/contrasena) --
+    # asi que la inmensa mayoria de altas llegan aqui SIN username, no
+    # como una excepcion rara. Bloquear el registro en ese caso rompe
+    # el alta por completo para todo el mundo. En vez de eso, se deja
+    # pasar sin username: post_confirmation creara el perfil con
+    # needs_username=True, y el frontend ya sabe llevar a esos usuarios
+    # a /settings para elegir uno (ver app/frontend/src/pages/Callback.jsx).
+    if not username:
+        return event
+
+    # Si SI llega un username (via un formulario propio futuro, o
+    # llamando a la API de Cognito directamente en vez del Hosted UI),
+    # aqui se valida formato y unicidad best-effort como antes.
     if not USERNAME_RE.match(username):
         raise Exception("El nombre de usuario debe tener 3-30 caracteres (a-z, 0-9, _)")
 

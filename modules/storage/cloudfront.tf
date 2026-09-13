@@ -50,6 +50,20 @@ resource "aws_cloudfront_distribution" "this" {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods          = ["GET", "HEAD"]
     cache_policy_id         = local.cache_policy_optimized
+
+    # Reescribe rutas de React Router (p.ej. /callback, /posts/123,
+    # /settings) a /index.html ANTES de que la peticion llegue a S3.
+    # Deliberadamente NO se usa custom_error_response (la alternativa
+    # habitual): esa configuracion es global a toda la distribucion, y
+    # tambien interceptaria los 403/404 legitimos de /api/* (p.ej.
+    # get_post devolviendo 404 cuando un post no existe), sustituyendo
+    # esas respuestas de la API por el HTML de la SPA. Esta funcion,
+    # en cambio, solo esta asociada a este comportamiento (el del
+    # frontend), y /api/* e /images/* quedan completamente al margen.
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.spa_routing.arn
+    }
   }
 
   # Dinamico: la API. Sin cache, reenvia Authorization/query strings.

@@ -12,6 +12,7 @@ Mismos 8 módulos que `envs/prod`, adaptados a una cuenta con **IAM restringido 
 | `mock_ses_notifications` | `true` | La Lambda de notificaciones no llama a SES en absoluto, solo lo registra en el log. El registro de la notificación en DynamoDB se guarda igual, con o sin esto |
 | `enable_waf` | `true` | Si el laboratorio no permite `wafv2:*`, ponedlo a `false` — `storage` recibe `waf_web_acl_arn = null` y no se crea el módulo `security` |
 | `manage_lambda_code_with_terraform` | `true` | Terraform empaqueta y sube el código de las Lambdas directamente (`archive_file` + `filename`/`source_code_hash`), sin S3 ni pipeline externo — no hace falta ningún paso manual de empaquetado |
+| `manage_frontend_with_terraform` | `true` | Terraform ejecuta `npm install`/`npm run build`, sincroniza `dist/` con S3 e invalida CloudFront, todo en el mismo `apply`, vía `local-exec` (requiere `node`/`npm`/`aws` en el PATH) |
 
 ## Lo que ya sabemos, tras el primer despliegue real contra este laboratorio concreto
 
@@ -153,6 +154,44 @@ $env:VITE_LOGOUT_URI = "http://localhost:5173"
 
 npm run dev
 ```
+
+## Alternativa: workflow manual de GitHub Actions (`dev-deploy.yml`)
+
+El flujo local de arriba sigue siendo el recomendado. Si preferís disparar el despliegue desde GitHub en vez de vuestra máquina, existe `.github/workflows/dev-deploy.yml` — pero **no resuelve el problema de fondo**, solo lo traslada: las credenciales siguen siendo la sesión temporal del laboratorio, así que hay que refrescarlas antes de cada ejecución.
+
+### Configuración, una sola vez
+
+1. En GitHub: `Settings → Environments → New environment`, llamadlo `dev-lab`.
+2. Dentro de ese Environment, variables (`Variables`, no `Secrets`):
+
+| Variable | Valor |
+|---|---|
+| `AWS_REGION` | `eu-west-1` |
+| `OWNER` | `igarra` |
+| `SES_FROM_ADDRESS` | vuestro email verificado en SES |
+| `ALARM_EMAIL` | vuestro email |
+| `FRONTEND_REDIRECT_URI` | `http://localhost:5173/callback` (o el dominio de CloudFront en fase 2) |
+| `FRONTEND_LOGOUT_URI` | `http://localhost:5173` (o el dominio de CloudFront en fase 2) |
+
+### Antes de cada ejecución: refrescar los 3 secrets
+
+```powershell
+aws configure export-credentials --profile cursoAWS --format env
+```
+
+Esto imprime tres líneas (`export AWS_ACCESS_KEY_ID=...`, `export AWS_SECRET_ACCESS_KEY=...`, `export AWS_SESSION_TOKEN=...`). Copiad el valor de cada una (sin el `export NOMBRE=`) al `Environment` `dev-lab`, en **Secrets**:
+
+| Secret | Valor |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | el de la línea 1 |
+| `AWS_SECRET_ACCESS_KEY` | el de la línea 2 |
+| `AWS_SESSION_TOKEN` | el de la línea 3 |
+
+Luego, en la pestaña *Actions* del repositorio, ejecutad `dev-deploy` manualmente (`Run workflow`). Si la sesión caducó a mitad de una ejecución anterior, simplemente repetid este paso con una sesión nueva y volved a lanzarlo.
+
+### Por qué no se dispara solo con cada push
+
+A diferencia de `prod` (OIDC, credenciales siempre frescas por ejecución), aquí un push automático fallaría en cuanto la sesión caducase, sin relación con ningún cambio real en el código — sería ruido, no señal. Por eso el disparo es manual (`workflow_dispatch`), y el runner de GitHub Actions también necesita `node`/`npm` instalados en el propio job (ya incluido en el workflow) porque el `local-exec` que compila el frontend corre dentro de ese mismo `terraform apply`, en la máquina de GitHub, no en la vuestra.
 
 ## Lo que NO se garantiza en dev
 
