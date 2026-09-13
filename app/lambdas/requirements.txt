@@ -1,0 +1,7 @@
+# boto3 (y botocore) vienen preinstalados en el runtime python3.12 de
+# AWS Lambda: no es necesario declararlos ni empaquetarlos.
+#
+# Este fichero existe para que el paso de "pip install" del pipeline de
+# CI/CD sea un no-op explicito hoy, y quede el sitio correcto donde
+# anadir una dependencia el dia que algun handler necesite una libreria
+# que no venga con el runtime (por ejemplo, un parser de markdown).
