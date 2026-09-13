@@ -13,6 +13,9 @@ export default function PostCard({ post }) {
       </h2>
       <div className="post-meta">
         por <Link to={`/u/${author}`}>@{author}</Link> · {date}
+        {typeof post.like_count === "number" && post.like_count > 0 && (
+          <> · {post.like_count} {post.like_count === 1 ? "me gusta" : "me gusta"}</>
+        )}
       </div>
     </article>
   );

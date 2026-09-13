@@ -20,6 +20,7 @@ export default function PostDetail() {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
   const [commentBody, setCommentBody] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -31,6 +32,7 @@ export default function PostDetail() {
         listPostComments(postId),
       ]);
       setPost(postData);
+      setLikeCount(postData.like_count || 0);
       setComments(commentsData.comments);
     } catch (e) {
       setError(e.message);
@@ -45,10 +47,12 @@ export default function PostDetail() {
   async function handleLike() {
     const next = !liked;
     setLiked(next);
+    setLikeCount((c) => Math.max(0, c + (next ? 1 : -1)));
     try {
       await toggleLike(postId, next);
     } catch (e) {
       setLiked(!next);
+      setLikeCount((c) => Math.max(0, c + (next ? -1 : 1)));
       setError(e.message);
     }
   }
@@ -110,7 +114,10 @@ export default function PostDetail() {
         <Markdown source={post.body_markdown} />
       </div>
 
-      <div style={{ display: "flex", gap: 10, marginBottom: 30 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 30, alignItems: "center" }}>
+        <span className="post-meta">
+          {likeCount} {likeCount === 1 ? "me gusta" : "me gusta"}
+        </span>
         {authed && (
           <button className={`btn ${liked ? "warm" : "secondary"}`} onClick={handleLike}>
             {liked ? "Ya no me gusta" : "Me gusta"}

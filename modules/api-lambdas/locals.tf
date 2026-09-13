@@ -30,7 +30,7 @@ locals {
       description   = "Perfil publico de un usuario por username"
       memory        = 128
       timeout       = 5
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/users/{username}"
       auth_required = false
       admin_only    = false
@@ -43,7 +43,7 @@ locals {
       description   = "Feed global paginado (Query sobre los N shards de GSI1)"
       memory        = 128
       timeout       = 10
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/posts"
       auth_required = false
       admin_only    = false
@@ -56,7 +56,7 @@ locals {
       description   = "Post individual + su metadata"
       memory        = 128
       timeout       = 5
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/posts/{postId}"
       auth_required = false
       admin_only    = false
@@ -69,7 +69,7 @@ locals {
       description   = "Comentarios de un post"
       memory        = 128
       timeout       = 10
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/posts/{postId}/comments"
       auth_required = false
       admin_only    = false
@@ -82,7 +82,7 @@ locals {
       description   = "Posts publicados por un usuario"
       memory        = 128
       timeout       = 10
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/users/{username}/posts"
       auth_required = false
       admin_only    = false
@@ -96,7 +96,7 @@ locals {
       description   = "Posts filtrados por tag"
       memory        = 128
       timeout       = 10
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/tags/{tag}/posts"
       auth_required = false
       admin_only    = false
@@ -109,7 +109,7 @@ locals {
       description   = "Feed personalizado del usuario autenticado (filtrado por sub en el handler)"
       memory        = 128
       timeout       = 10
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/me/feed"
       auth_required = true
       admin_only    = false
@@ -122,7 +122,7 @@ locals {
       description   = "Notificaciones del usuario autenticado"
       memory        = 128
       timeout       = 10
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/me/notifications"
       auth_required = true
       admin_only    = false
@@ -135,7 +135,7 @@ locals {
       description   = "Perfil propio del usuario autenticado (incluye needs_username)"
       memory        = 128
       timeout       = 5
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/me/profile"
       auth_required = true
       admin_only    = false
@@ -148,7 +148,7 @@ locals {
       description   = "Actualiza el perfil del usuario autenticado (bio, avatar, username)"
       memory        = 128
       timeout       = 10
-      http_method   = "PUT"
+      http_method   = ["PUT"]
       http_path     = "/me/profile"
       auth_required = true
       admin_only    = false
@@ -169,7 +169,7 @@ locals {
       description   = "Crea un post (draft o published)"
       memory        = 128
       timeout       = 10
-      http_method   = "POST"
+      http_method   = ["POST"]
       http_path     = "/posts"
       auth_required = true
       admin_only    = false
@@ -183,7 +183,7 @@ locals {
       description   = "Edita un post (verifica autoria comparando cognito_sub en el handler)"
       memory        = 128
       timeout       = 10
-      http_method   = "PUT"
+      http_method   = ["PUT"]
       http_path     = "/posts/{postId}"
       auth_required = true
       admin_only    = false
@@ -196,7 +196,7 @@ locals {
       description   = "Borrado logico de un post (verifica autoria en el handler)"
       memory        = 128
       timeout       = 10
-      http_method   = "DELETE"
+      http_method   = ["DELETE"]
       http_path     = "/posts/{postId}"
       auth_required = true
       admin_only    = false
@@ -209,7 +209,7 @@ locals {
       description   = "Crea un comentario en un post"
       memory        = 128
       timeout       = 10
-      http_method   = "POST"
+      http_method   = ["POST"]
       http_path     = "/posts/{postId}/comments"
       auth_required = true
       admin_only    = false
@@ -223,12 +223,12 @@ locals {
       description   = "Da o quita like a un post (PUT/DELETE sobre el mismo item)"
       memory        = 128
       timeout       = 5
-      http_method   = "ANY"
+      http_method   = ["PUT", "DELETE"]
       http_path     = "/posts/{postId}/likes"
       auth_required = true
       admin_only    = false
       statements = [
-        { sid = "ToggleLike", actions = ["dynamodb:PutItem", "dynamodb:DeleteItem"], resources = [local.table_arn], leading_keys = ["POST#*"] }
+        { sid = "ToggleLike", actions = ["dynamodb:PutItem", "dynamodb:DeleteItem", "dynamodb:UpdateItem"], resources = [local.table_arn], leading_keys = ["POST#*"] }
       ]
     }
 
@@ -236,7 +236,7 @@ locals {
       description   = "Sigue o deja de seguir a un usuario"
       memory        = 128
       timeout       = 5
-      http_method   = "ANY"
+      http_method   = ["PUT", "DELETE"]
       http_path     = "/users/{username}/follow"
       auth_required = true
       admin_only    = false
@@ -250,7 +250,7 @@ locals {
       description   = "Registra la imagen y devuelve una URL prefirmada de S3"
       memory        = 128
       timeout       = 5
-      http_method   = "POST"
+      http_method   = ["POST"]
       http_path     = "/posts/{postId}/images"
       auth_required = true
       admin_only    = false
@@ -264,7 +264,7 @@ locals {
       description   = "Crea una denuncia sobre un post"
       memory        = 128
       timeout       = 5
-      http_method   = "POST"
+      http_method   = ["POST"]
       http_path     = "/posts/{postId}/reports"
       auth_required = true
       admin_only    = false
@@ -277,7 +277,7 @@ locals {
       description   = "Lista las denuncias abiertas (solo administradores)"
       memory        = 128
       timeout       = 10
-      http_method   = "GET"
+      http_method   = ["GET"]
       http_path     = "/admin/moderation"
       auth_required = true
       admin_only    = true
@@ -290,7 +290,7 @@ locals {
       description   = "Resuelve una denuncia (elimina GSI2PK, la saca de la cola)"
       memory        = 128
       timeout       = 10
-      http_method   = "POST"
+      http_method   = ["POST"]
       http_path     = "/admin/reports/{reportId}/resolve"
       auth_required = true
       admin_only    = true

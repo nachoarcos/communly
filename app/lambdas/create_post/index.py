@@ -58,17 +58,28 @@ def handler(event, context):
         "status": status,
         "created_at": now,
         "updated_at": now,
+        # Contador atomico, incrementado/decrementado por toggle_like
+        # via UpdateItem ADD. Se inicializa aqui para que el atributo
+        # siempre exista (aunque ADD tambien lo crearia solo, esto deja
+        # el 0 explicito en la respuesta desde el primer momento).
+        "like_count": 0,
+        # GSI2 (posts del autor) se escribe SIEMPRE, publicado o no --
+        # es lo que permite a un usuario ver sus propios borradores
+        # (GET /me/posts). Distinto de GSI1 (feed publico), que sigue
+        # siendo sparse: un borrador nunca debe aparecer ahi ni en el
+        # perfil publico de otra persona (ver list_user_posts, que
+        # filtra por status=published explicitamente).
+        "GSI2PK": f"USER#{user_sub}",
+        "GSI2SK": f"POST#{now}#{post_id}",
     }
 
-    # Sparse por diseno: estas claves solo existen si el post nace ya
-    # publicado. Un draft no las tiene y por tanto no aparece en ningun
-    # indice de listado (ver modules/dynamodb/dynamodb.tf).
+    # Sparse por diseno: estas claves solo existen si el post esta
+    # publicado. Un borrador no las tiene y por tanto no aparece nunca
+    # en el feed global (ver modules/dynamodb/dynamodb.tf).
     if status == "published":
         item["published_at"] = now
         item["GSI1PK"] = f"POSTS#{shard_for(post_id)}"
         item["GSI1SK"] = f"PUBLISHED#{now}#{post_id}"
-        item["GSI2PK"] = f"USER#{user_sub}"
-        item["GSI2SK"] = f"POST#{now}#{post_id}"
 
     table.put_item(Item=item, ConditionExpression="attribute_not_exists(PK)")
 

@@ -3,9 +3,9 @@ variable "environment"  { type = string }
 variable "owner"         { type = string }
 
 variable "routes" {
-  description = "Mapa access_pattern -> {method, path, auth_required, admin_only, function_key}, output del modulo api-lambdas"
+  description = "Mapa access_pattern -> {method, path, auth_required, admin_only, function_key}, output del modulo api-lambdas. 'method' es una lista: la mayoria tiene un solo elemento, pero p.ej. toggle_like/toggle_follow declaran [\"PUT\",\"DELETE\"] para evitar el metodo ANY (que intercepta OPTIONS y rompe el CORS automatico, ver routes.tf)."
   type = map(object({
-    method        = string
+    method        = list(string)
     path          = string
     auth_required = bool
     admin_only    = bool
