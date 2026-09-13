@@ -1,0 +1,61 @@
+name: dev-deploy
+
+# Disparo MANUAL, nunca por push: las credenciales (secrets
+# AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY/AWS_SESSION_TOKEN) son una
+# sesion temporal del laboratorio que caduca en horas. Si esto se
+# disparase en cada push, empezaria a fallar solo en cuanto caducase la
+# sesion, sin que hubiera ningun cambio real de por medio -- con
+# disparo manual, se ejecuta justo despues de refrescar los secrets.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev-lab # Environment de GitHub con sus propios secrets/variables
+    defaults:
+      run:
+        working-directory: envs/dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Credenciales estaticas de la sesion del laboratorio, NO OIDC
+      # (bloqueado en esta cuenta, ver bootstrap/README). Hay que
+      # refrescar estos 3 secrets antes de cada ejecucion -- ver
+      # instrucciones en envs/dev/README.md.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+
+      # Necesario aqui, no solo en local: el local-exec de
+      # modules/storage/frontend_deploy.tf ejecuta "npm run build"
+      # DENTRO del propio terraform apply, en esta misma maquina.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: terraform init
+        run: terraform init
+
+      - name: terraform apply
+        run: |
+          terraform apply -auto-approve \
+            -var="owner=${{ vars.OWNER }}" \
+            -var="ses_from_address=${{ vars.SES_FROM_ADDRESS }}" \
+            -var="alarm_email=${{ vars.ALARM_EMAIL }}" \
+            -var="attach_extra_permissions_to_shared_role=false" \
+            -var="enable_stream_triggers=false" \
+            -var="frontend_build_redirect_uri=${{ vars.FRONTEND_REDIRECT_URI }}" \
+            -var="frontend_build_logout_uri=${{ vars.FRONTEND_LOGOUT_URI }}" \
+            -var="local_exec_shell=unix"

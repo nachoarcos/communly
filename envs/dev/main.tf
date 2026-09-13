@@ -205,6 +205,9 @@ module "observability" {
   dynamodb_table_name   = module.dynamodb.dynamodb_table_name
 
   alarm_email = var.alarm_email
+
+  enable_budget            = var.enable_budget
+  monthly_budget_limit_usd = var.monthly_budget_limit_usd
 }
 
 # ---------------------------------------------------------------------------

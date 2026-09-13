@@ -127,3 +127,15 @@ variable "local_exec_shell" {
   type        = string
   default     = "windows"
 }
+
+variable "enable_budget" {
+  description = "Si es false, no se crea el aws_budgets_budget. Poner a false si el laboratorio bloquea el servicio Budgets."
+  type        = bool
+  default     = true
+}
+
+variable "monthly_budget_limit_usd" {
+  description = "Limite de presupuesto mensual en USD para las alarmas de AWS Budgets."
+  type        = number
+  default     = 40
+}

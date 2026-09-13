@@ -354,7 +354,7 @@ Preferimos explicar la seguridad como capas, porque así es como realmente está
 ## FinOps
 
 - **Etiquetado**: `Project`, `Environment` y `Owner` se aplican vía `default_tags` en el provider (`envs/prod/providers.tf`), así que todo recurso que soporte etiquetas las recibe automáticamente, sin que tengamos que repetirlas recurso a recurso.
-- **AWS Budgets**: documentado en la estimación de coste, pero todavía no está instanciado como recurso de Terraform — hoy es una cifra en una tabla, no una alarma real que se dispare sola. Lo dejamos anotado en [Mejoras futuras](#mejoras-futuras) en vez de darlo por hecho.
+- **AWS Budgets**: instanciado como recurso real (`aws_budgets_budget` en `modules/observability/budget.tf`), con dos avisos por email al mismo `alarm_email` de las alarmas de CloudWatch — al 80% de gasto real y al 100% de gasto previsto. En `dev`, `enable_budget` permite desactivarlo si el laboratorio bloquea el servicio (es un servicio global de facturación, no ligado a la región del provider).
 
 ---
 
@@ -386,7 +386,6 @@ Preferimos dejarlas escritas aquí a que las descubra otra persona sin avisar:
 
 - **La moderación no termina la acción.** `resolve_report` marca una denuncia como resuelta, pero no borra el post denunciado ni sanciona a la cuenta que lo publicó — falta esa pieza final, y hoy es un paso manual.
 - **El botón de "me gusta" no recuerda el estado anterior.** Arranca siempre en `false` en el frontend, aunque el usuario ya hubiera dado like antes de cargar la página; falta un access pattern de lectura que compruebe ese estado antes de pintar el botón.
-- **AWS Budgets solo existe en la documentación, no en el código.** La cifra de coste está calculada y es correcta, pero no hay ninguna alarma de presupuesto real desplegada todavía.
 - **`update_profile` tiene un permiso más amplio de lo que nos gustaría**, por la limitación real de `TransactWriteItems` ya explicada en la sección de seguridad.
 - **No hay dominio propio.** Se usa el dominio por defecto de CloudFront (`*.cloudfront.net`); añadir uno propio implica un certificado ACM en `us-east-1` y configurar el alias, y no lo hemos hecho.
 - **Consistencia eventual** en el feed personalizado y en el contador de likes, aceptada por diseño y ya justificada en la [decisión arquitectónica](#decisión-arquitectónica).
@@ -398,7 +397,6 @@ Esta lista está pensada como una hoja de ruta razonable si el proyecto siguiera
 **Corto plazo, coste bajo**
 - Completar la acción real de moderación: que `resolve_report` pueda, opcionalmente, borrar el post o marcar la cuenta del autor como sancionada, en vez de solo cerrar la denuncia.
 - Añadir el access pattern que falta para que "me gusta" recuerde su estado (`GetItem` sobre `PK=POST#<id>/SK=LIKE#<sub>` antes de pintar el botón).
-- Instanciar `AWS Budgets` como recurso de Terraform, con una alarma real de coste mensual en vez de dejarlo solo en la documentación.
 - Dominio propio con certificado ACM, para dejar de depender del dominio genérico de CloudFront — más una cuestión de imagen que técnica, pero relevante si esto se enseña a terceros.
 
 **Medio plazo**

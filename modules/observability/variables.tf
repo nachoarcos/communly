@@ -26,3 +26,15 @@ variable "log_retention_days" {
   type    = number
   default = 30
 }
+
+variable "enable_budget" {
+  description = "Si es false, no se crea el aws_budgets_budget. Poner a false si el laboratorio bloquea el servicio Budgets (es un servicio global de facturacion, similar a IAM -- no se ha podido confirmar en todos los entornos si la SCP de restriccion de region lo afecta tambien)."
+  type        = bool
+  default     = true
+}
+
+variable "monthly_budget_limit_usd" {
+  description = "Limite de presupuesto mensual en USD. Ver estimacion de coste en el README (~12-31 USD/mes segun trafico) para elegir un valor razonable."
+  type        = number
+  default     = 40
+}

@@ -20,11 +20,20 @@ bootstrap/.terraform/
 # antes del primer despliegue real de codigo.
 **/.placeholder.zip
 
+# Zips generados por Terraform cuando manage_lambda_code_with_terraform=true
+# (empaquetado directo, sin pasar por S3/pipeline).
+**/dist-*.zip
+
 # Frontend
 app/frontend/node_modules/
 app/frontend/dist/
 app/frontend/.env
 app/frontend/.env.local
+
+# Variables de entorno especificas (contienen email personal, dominios
+# reales, etc.) -- cada persona/entorno tiene el suyo, no se versiona.
+envs/*/terraform.tfvars
+envs/*/*.auto.tfvars
 
 # Artefactos de empaquetado de Lambda (build local, no se versionan)
 **/function.zip
