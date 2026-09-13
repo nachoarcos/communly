@@ -15,7 +15,7 @@ variable "owner" {
 variable "aws_region" {
   description = "Verificar contra las regiones permitidas en el laboratorio -- muchos entornos de formacion restringen a una unica region."
   type        = string
-  default     = "us-east-1"
+  default     = "eu-west-1"
 }
 
 variable "ses_from_address" {
