@@ -67,18 +67,38 @@ export const toggleLike = (postId, liked) =>
 export const reportPost = (postId, reason) =>
   apiFetch(`/posts/${postId}/reports`, { method: "POST", body: { reason }, auth: true });
 
-export const requestImageUpload = (postId, contentType) =>
-  apiFetch(`/posts/${postId}/images`, {
+export const requestImageUpload = (contentType) =>
+  apiFetch("/me/images", {
     method: "POST",
     body: { contentType },
     auth: true,
   });
+
+// Pide la URL prefirmada y sube el fichero directamente a S3 (esa
+// segunda petición NO pasa por la API, va directa al bucket con la URL
+// firmada). Devuelve la ruta publica lista para insertar en markdown.
+export async function uploadImage(file) {
+  const { uploadUrl, publicPath } = await requestImageUpload(file.type);
+
+  const res = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, "No se pudo subir la imagen");
+  }
+
+  return publicPath;
+}
 
 // --- Usuarios / perfil -----------------------------------------------------
 
 export const getUserProfile = (username) => apiFetch(`/users/${username}`);
 
 export const listUserPosts = (username) => apiFetch(`/users/${username}/posts`);
+
+export const listOwnPosts = () => apiFetch("/me/posts", { auth: true });
 
 export const toggleFollow = (username, following) =>
   apiFetch(`/users/${username}/follow`, { method: following ? "PUT" : "DELETE", auth: true });

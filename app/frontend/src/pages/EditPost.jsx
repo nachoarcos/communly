@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPost, updatePost } from "../lib/api";
+import { getPost, updatePost, uploadImage } from "../lib/api";
 
 export default function EditPost() {
   const { postId } = useParams();
@@ -11,6 +11,7 @@ export default function EditPost() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     getPost(postId)
@@ -22,6 +23,23 @@ export default function EditPost() {
       })
       .catch((e) => setError(e.message));
   }, [postId]);
+
+  async function handleImageSelect(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setUploading(true);
+    setError(null);
+    try {
+      const publicPath = await uploadImage(file);
+      setBodyMarkdown((prev) => `${prev}\n\n![imagen](${publicPath})\n`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -48,6 +66,18 @@ export default function EditPost() {
         <div className="field">
           <label htmlFor="title">Titulo</label>
           <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        </div>
+
+        <div className="field">
+          <label htmlFor="image">Insertar imagen</label>
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            disabled={uploading}
+          />
+          {uploading && <p className="post-meta">Subiendo imagen...</p>}
         </div>
 
         <div className="field">

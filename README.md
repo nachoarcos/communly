@@ -48,7 +48,7 @@ No nos quedamos en el MVP mínimo. Estas son las extensiones que sí llegaron a 
 
 | Extensión | Estado | Dónde |
 |---|---|---|
-| Subida de imágenes (S3 + CDN) | ✅ Completa | `request_image_upload` + `modules/storage` |
+| Subida de imágenes (S3 + CDN) | ✅ Completa | `request_image_upload` (`POST /me/images`, sin depender de un post ya creado) + botón de subida en `NewPost`/`EditPost`/comentarios |
 | Tags / categorías y filtrado | ✅ Completa | `list_posts_by_tag`, ítems `TAG#` |
 | Likes en posts | ✅ Completa | `toggle_like` |
 | Seguir usuarios + feed personalizado | ✅ Completa | `toggle_follow`, `list_user_feed`, fan-out por Streams |

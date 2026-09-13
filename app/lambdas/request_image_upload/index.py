@@ -2,8 +2,6 @@ import os
 import json
 import uuid
 import boto3
-from datetime import datetime, timezone
-from shared.dynamo import table
 from shared.http import ok, err
 from shared.auth import get_user_sub
 
@@ -17,10 +15,6 @@ def handler(event, context):
     if not user_sub:
         return err(401, "No autenticado")
 
-    post_id = (event.get("pathParameters") or {}).get("postId")
-    if not post_id:
-        return err(400, "postId requerido")
-
     try:
         body = json.loads(event.get("body") or "{}")
     except json.JSONDecodeError:
@@ -32,24 +26,11 @@ def handler(event, context):
 
     image_id = str(uuid.uuid4())
     extension = content_type.split("/")[-1] or "bin"
-    key = f"images/{post_id}/{image_id}.{extension}"
-    now = datetime.now(timezone.utc).isoformat()
-
-    # Registrar la imagen en la tabla ANTES de firmar la URL: si el
-    # usuario nunca completa la subida, queda un registro huerfano
-    # detectable (sin objeto real en S3), preferible a un objeto en S3
-    # sin registro en la tabla.
-    table.put_item(
-        Item={
-            "PK": f"POST#{post_id}",
-            "SK": f"IMAGE#{image_id}",
-            "image_id": image_id,
-            "post_id": post_id,
-            "uploaded_by_sub": user_sub,
-            "s3_key": key,
-            "created_at": now,
-        }
-    )
+    # Bajo el usuario, no bajo un post: al escribir un post NUEVO todavia
+    # no existe ningun post_id al que asociar la imagen. La asociacion
+    # real queda implicita en el propio markdown (la URL de la imagen
+    # se inserta en el cuerpo del post/comentario), no en una tabla.
+    key = f"images/{user_sub}/{image_id}.{extension}"
 
     upload_url = s3.generate_presigned_url(
         "put_object",
@@ -62,7 +43,10 @@ def handler(event, context):
             "imageId": image_id,
             "uploadUrl": upload_url,
             # Ruta publica final una vez CloudFront sirva el objeto
-            # (ver modules/storage/cloudfront.tf, comportamiento /images/*).
+            # (ver modules/storage/cloudfront.tf, comportamiento
+            # /images/*). Al ser relativa y servirse la SPA desde el
+            # mismo dominio de CloudFront, funciona tal cual dentro del
+            # markdown sin anadir el dominio a mano.
             "publicPath": f"/{key}",
             "expiresInSeconds": UPLOAD_URL_TTL_SECONDS,
         }

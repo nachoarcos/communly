@@ -7,6 +7,7 @@ import {
   toggleLike,
   deletePost,
   reportPost,
+  uploadImage,
 } from "../lib/api";
 import { isAuthenticated, getClaims } from "../lib/auth";
 import Markdown from "../components/Markdown";
@@ -24,6 +25,7 @@ export default function PostDetail() {
   const [commentBody, setCommentBody] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [uploadingComment, setUploadingComment] = useState(false);
 
   async function load() {
     try {
@@ -54,6 +56,23 @@ export default function PostDetail() {
       setLiked(!next);
       setLikeCount((c) => Math.max(0, c + (next ? -1 : 1)));
       setError(e.message);
+    }
+  }
+
+  async function handleCommentImageSelect(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setUploadingComment(true);
+    setError(null);
+    try {
+      const publicPath = await uploadImage(file);
+      setCommentBody((prev) => `${prev}\n\n![imagen](${publicPath})\n`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadingComment(false);
     }
   }
 
@@ -150,6 +169,15 @@ export default function PostDetail() {
             onChange={(e) => setCommentBody(e.target.value)}
             placeholder="Escribe un comentario"
           />
+          <div style={{ marginTop: 8 }}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCommentImageSelect}
+              disabled={uploadingComment}
+            />
+            {uploadingComment && <span className="post-meta"> Subiendo imagen...</span>}
+          </div>
           <button className="btn" disabled={busy} style={{ marginTop: 10 }}>
             Comentar
           </button>
@@ -164,7 +192,7 @@ export default function PostDetail() {
             @{c.author_username || "usuario"} ·{" "}
             {new Date(c.created_at).toLocaleDateString("es-ES")}
           </div>
-          <p>{c.body}</p>
+          <Markdown source={c.body} />
         </div>
       ))}
     </div>

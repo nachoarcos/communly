@@ -247,15 +247,14 @@ locals {
     }
 
     request_image_upload = {
-      description   = "Registra la imagen y devuelve una URL prefirmada de S3"
+      description   = "Devuelve una URL prefirmada de S3 para subir una imagen (posts o comentarios, con o sin post ya creado)"
       memory        = 128
       timeout       = 5
       http_method   = ["POST"]
-      http_path     = "/posts/{postId}/images"
+      http_path     = "/me/images"
       auth_required = true
       admin_only    = false
       statements = [
-        { sid = "RegisterImageItem", actions = ["dynamodb:PutItem"], resources = [local.table_arn], leading_keys = ["POST#*"] },
         { sid = "PresignUpload", actions = ["s3:PutObject"], resources = ["${var.images_bucket_arn}/*"], leading_keys = null }
       ]
     }
