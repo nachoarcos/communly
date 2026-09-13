@@ -17,6 +17,7 @@ data "archive_file" "placeholder" {
 }
 
 resource "aws_s3_object" "pre_signup_placeholder" {
+  count  = var.manage_lambda_code_with_terraform ? 0 : 1
   bucket = var.lambda_code_bucket
   key    = var.pre_signup_s3_key
   source = data.archive_file.placeholder.output_path
@@ -28,6 +29,7 @@ resource "aws_s3_object" "pre_signup_placeholder" {
 }
 
 resource "aws_s3_object" "post_confirmation_placeholder" {
+  count  = var.manage_lambda_code_with_terraform ? 0 : 1
   bucket = var.lambda_code_bucket
   key    = var.post_confirmation_s3_key
   source = data.archive_file.placeholder.output_path

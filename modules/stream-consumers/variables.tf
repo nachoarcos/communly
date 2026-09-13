@@ -49,6 +49,12 @@ variable "mock_ses_notifications" {
   default     = false
 }
 
+variable "manage_lambda_code_with_terraform" {
+  description = "Si es true, Terraform empaqueta el codigo de app/stream-consumers/* directamente (archive_file) y lo sube via filename + source_code_hash, sin pasar por S3 ni por un pipeline externo. Ver la misma variable en modules/api-lambdas para el contexto completo."
+  type        = bool
+  default     = false
+}
+
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
   common_tags = {

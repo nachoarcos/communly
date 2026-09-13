@@ -6,8 +6,10 @@ resource "aws_lambda_function" "notifications" {
   timeout       = 15
   memory_size   = 128
 
-  s3_bucket = var.lambda_code_bucket
-  s3_key    = var.notifications_s3_key
+  filename         = var.manage_lambda_code_with_terraform ? data.archive_file.notifications_source[0].output_path : null
+  source_code_hash = var.manage_lambda_code_with_terraform ? data.archive_file.notifications_source[0].output_base64sha256 : null
+  s3_bucket        = var.manage_lambda_code_with_terraform ? null : var.lambda_code_bucket
+  s3_key           = var.manage_lambda_code_with_terraform ? null : var.notifications_s3_key
 
   environment {
     variables = {

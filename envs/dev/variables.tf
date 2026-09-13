@@ -13,7 +13,7 @@ variable "owner" {
 }
 
 variable "aws_region" {
-  description = "Verificar contra las regiones permitidas en el laboratorio -- muchos entornos de formacion restringen a una unica region."
+  description = "Region del laboratorio. Confirmado por el error 'InvalidParameter: Invalid parameter: TopicArn' de SNS en un despliegue real: este laboratorio en concreto opera en eu-west-1, con una politica de organizacion que restringe la mayoria de acciones a esa region (WAF/CloudFront es la excepcion esperada, siempre en us-east-1 por requisito de AWS, no de esta variable)."
   type        = string
   default     = "eu-west-1"
 }
@@ -88,6 +88,12 @@ variable "enable_waf" {
 
 variable "mock_ses_notifications" {
   description = "Si es true, la Lambda de notificaciones no intenta enviar el email real via SES -- solo lo registra en el log. Ver modules/stream-consumers/variables.tf. Por defecto activo en dev porque este entorno no suele tener SES concedido."
+  type        = bool
+  default     = true
+}
+
+variable "manage_lambda_code_with_terraform" {
+  description = "Si es true, Terraform empaqueta y sube el codigo de las Lambdas directamente (sin S3 ni pipeline externo). Por defecto activo en dev porque no hay CI/CD en este entorno (ver envs/dev/README.md)."
   type        = bool
   default     = true
 }

@@ -55,8 +55,10 @@ resource "aws_lambda_function" "pre_signup" {
   timeout       = 5
   memory_size   = 128
 
-  s3_bucket = var.lambda_code_bucket
-  s3_key    = var.pre_signup_s3_key
+  filename         = var.manage_lambda_code_with_terraform ? data.archive_file.pre_signup_source[0].output_path : null
+  source_code_hash = var.manage_lambda_code_with_terraform ? data.archive_file.pre_signup_source[0].output_base64sha256 : null
+  s3_bucket        = var.manage_lambda_code_with_terraform ? null : var.lambda_code_bucket
+  s3_key           = var.manage_lambda_code_with_terraform ? null : var.pre_signup_s3_key
 
   environment {
     variables = { TABLE_NAME = var.dynamodb_table_name }
@@ -140,8 +142,10 @@ resource "aws_lambda_function" "post_confirmation" {
   timeout       = 10
   memory_size   = 128
 
-  s3_bucket = var.lambda_code_bucket
-  s3_key    = var.post_confirmation_s3_key
+  filename         = var.manage_lambda_code_with_terraform ? data.archive_file.post_confirmation_source[0].output_path : null
+  source_code_hash = var.manage_lambda_code_with_terraform ? data.archive_file.post_confirmation_source[0].output_base64sha256 : null
+  s3_bucket        = var.manage_lambda_code_with_terraform ? null : var.lambda_code_bucket
+  s3_key           = var.manage_lambda_code_with_terraform ? null : var.post_confirmation_s3_key
 
   environment {
     variables = { TABLE_NAME = var.dynamodb_table_name }

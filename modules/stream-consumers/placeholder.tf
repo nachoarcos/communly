@@ -22,6 +22,8 @@ data "archive_file" "placeholder" {
 }
 
 resource "aws_s3_object" "fan_out_placeholder" {
+  # Innecesario si Terraform sube el codigo directamente (ver archive.tf).
+  count  = var.manage_lambda_code_with_terraform ? 0 : 1
   bucket = var.lambda_code_bucket
   key    = var.fan_out_s3_key
   source = data.archive_file.placeholder.output_path
@@ -33,6 +35,7 @@ resource "aws_s3_object" "fan_out_placeholder" {
 }
 
 resource "aws_s3_object" "notifications_placeholder" {
+  count  = var.manage_lambda_code_with_terraform ? 0 : 1
   bucket = var.lambda_code_bucket
   key    = var.notifications_s3_key
   source = data.archive_file.placeholder.output_path

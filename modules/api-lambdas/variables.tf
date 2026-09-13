@@ -37,3 +37,9 @@ variable "shared_execution_role_arn" {
   type        = string
   default     = null
 }
+
+variable "manage_lambda_code_with_terraform" {
+  description = "Si es true, Terraform empaqueta el codigo de app/lambdas/* directamente (archive_file) y lo sube a cada funcion via filename + source_code_hash, sin pasar por S3 ni por un pipeline externo. Pensado para entornos sin CI/CD (dev, despliegue manual). Si es false (por defecto), se mantiene el flujo normal: s3_bucket/s3_key + placeholder, y el codigo real lo sube app-deploy.yml."
+  type        = bool
+  default     = false
+}

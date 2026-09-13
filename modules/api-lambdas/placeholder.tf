@@ -23,7 +23,11 @@ data "archive_file" "placeholder" {
 }
 
 resource "aws_s3_object" "placeholder" {
-  for_each = local.functions
+  # Innecesario si Terraform sube el codigo directamente (ver archive.tf).
+  # Mismo motivo que en archive.tf: se itera sobre las claves (toset),
+  # no sobre local.functions directamente, para evitar el error de
+  # unificacion de tipos de HCL en el condicional.
+  for_each = var.manage_lambda_code_with_terraform ? toset([]) : toset(keys(local.functions))
 
   bucket = var.lambda_code_bucket
   key    = "${var.lambda_code_prefix}/${each.key}.zip"

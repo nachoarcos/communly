@@ -11,6 +11,7 @@ Mismos 8 módulos que `envs/prod`, adaptados a una cuenta con **IAM restringido 
 | `enable_stream_triggers` | `true` | Conecta las Lambdas `fan-out`/`notifications` al Stream de DynamoDB. Requiere `dynamodb:DescribeStream`, `GetRecords`, `GetShardIterator`, `ListStreams` en el rol compartido |
 | `mock_ses_notifications` | `true` | La Lambda de notificaciones no llama a SES en absoluto, solo lo registra en el log. El registro de la notificación en DynamoDB se guarda igual, con o sin esto |
 | `enable_waf` | `true` | Si el laboratorio no permite `wafv2:*`, ponedlo a `false` — `storage` recibe `waf_web_acl_arn = null` y no se crea el módulo `security` |
+| `manage_lambda_code_with_terraform` | `true` | Terraform empaqueta y sube el código de las Lambdas directamente (`archive_file` + `filename`/`source_code_hash`), sin S3 ni pipeline externo — no hace falta ningún paso manual de empaquetado |
 
 ## Lo que ya sabemos, tras el primer despliegue real contra este laboratorio concreto
 
@@ -92,9 +93,33 @@ terraform apply `
 
 **Nota sobre el backend**: si vuestra versión de Terraform muestra el aviso `Deprecated Parameter: dynamodb_table`, usad `use_lockfile = true` en el bloque `backend "s3"` en vez de `dynamodb_table` — es el mecanismo de bloqueo nuevo, nativo de S3, y conviene adoptarlo antes de que exista ningún estado real (cambiarlo después exige migrar el backend).
 
-## Empaquetado y despliegue de código (sin CI/CD)
+## Despliegue del código de las Lambdas: gestionado por Terraform, sin pasos manuales
 
-**Importante en Windows**: `Compress-Archive` mete la carpeta de origen dentro del zip como subcarpeta si comprimís la carpeta en sí — Lambda necesita `index.py` en la raíz del zip. Comprimid el *contenido*, no la carpeta:
+Con `manage_lambda_code_with_terraform = true` (activo por defecto en este entorno), **no hace falta ningún `Compress-Archive`/`aws s3 cp`/`aws lambda update-function-code` manual**. Terraform empaqueta el código de `app/lambdas/*`, `app/stream-consumers/*` y `app/cognito-triggers/*` directamente (usando `archive_file`) y lo sube a cada función vía `filename`/`source_code_hash`, en el mismo `terraform apply` que crea el resto de la infraestructura.
+
+Esto significa que, para desplegar o actualizar el código, basta con volver a aplicar tras cualquier cambio en `app/`:
+
+```powershell
+cd envs\dev
+terraform apply `
+  -var="owner=igarra" `
+  -var="ses_from_address=igarra@gmail.com" `
+  -var="alarm_email=igarra@gmail.com" `
+  -var="attach_extra_permissions_to_shared_role=false" `
+  -var="enable_stream_triggers=false"
+```
+
+Terraform detecta el cambio de código por el hash del contenido (`output_base64sha256`) y actualiza solo las funciones cuyo código haya cambiado de verdad, sin tocar las demás.
+
+**Cómo verificarlo tras un `apply`:**
+```powershell
+aws lambda get-function --function-name communly-dev-list-posts --query "Configuration.CodeSha256"
+```
+Si coincide con lo que Terraform acaba de subir, el despliegue fue correcto.
+
+**Nota**: cada módulo (`api-lambdas`, `stream-consumers`, `cognito`) genera los `.zip` localmente junto a sus propios ficheros (`dist-*.zip`, ya en `.gitignore`) — no se suben a S3 ni al repositorio, son artefactos de build efímeros.
+
+Si en algún momento preferís desactivar esto (por ejemplo, para probar el flujo de despliegue manual que sí usa `prod`), poned `manage_lambda_code_with_terraform=false` y seguid el patrón manual de siempre:
 
 ```powershell
 $build = Join-Path $env:TEMP "list_posts_build"
@@ -107,8 +132,6 @@ aws s3 cp "$env:TEMP\list_posts.zip" s3://communly-dev-lambda-code/api/list_post
 aws lambda update-function-code --function-name communly-dev-list-posts `
   --s3-bucket communly-dev-lambda-code --s3-key api/list_posts.zip
 ```
-
-Repetid para el resto de funciones (18 más en `app\lambdas`, sin `shared/` en `app\stream-consumers\*` y `app\cognito-triggers\*`, que son autocontenidas).
 
 ## Frontend, en local
 

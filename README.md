@@ -201,6 +201,7 @@ Aquí también conviene separar "cómo escala en la práctica" de "cuáles son l
 | Conexión Lambda↔DynamoDB Streams | Siempre activa | `enable_stream_triggers` (por defecto `true`, se pone a `false` si el rol compartido no tiene los permisos de Streams) |
 | Envío de email por SES | Real | `mock_ses_notifications` (por defecto `true`): la Lambda de notificaciones **no llama a SES en absoluto**, solo registra en el log qué habría enviado — el registro de la notificación en DynamoDB se guarda igual |
 | WAF delante de CloudFront | Siempre activo | `enable_waf` (por defecto `true`, se pone a `false` si el laboratorio no permite `wafv2:*`) |
+| Despliegue del código de las Lambdas | Vía `app-deploy.yml` (GitHub Actions sube a S3, llama a `update-function-code`) | `manage_lambda_code_with_terraform` (por defecto `true`): Terraform empaqueta y sube el código directamente en el propio `apply`, sin S3 ni pipeline |
 | CI/CD | GitHub Actions vía OIDC | Manual, en local, con la sesión SSO del laboratorio (ver `envs/dev/README.md`) |
 | Región | `eu-west-1` | La que permita el laboratorio (verificar; no asumir `us-east-1` por defecto) |
 

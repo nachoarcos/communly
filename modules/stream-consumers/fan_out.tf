@@ -6,8 +6,10 @@ resource "aws_lambda_function" "fan_out" {
   timeout       = 30
   memory_size   = 256
 
-  s3_bucket = var.lambda_code_bucket
-  s3_key    = var.fan_out_s3_key
+  filename         = var.manage_lambda_code_with_terraform ? data.archive_file.fan_out_source[0].output_path : null
+  source_code_hash = var.manage_lambda_code_with_terraform ? data.archive_file.fan_out_source[0].output_base64sha256 : null
+  s3_bucket        = var.manage_lambda_code_with_terraform ? null : var.lambda_code_bucket
+  s3_key           = var.manage_lambda_code_with_terraform ? null : var.fan_out_s3_key
 
   environment {
     variables = {

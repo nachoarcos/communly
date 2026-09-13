@@ -53,6 +53,7 @@ module "stream_consumers" {
   shared_execution_role_arn    = local.lambda_role_arn
   enable_event_source_mappings = var.enable_stream_triggers
   mock_ses_notifications        = var.mock_ses_notifications
+  manage_lambda_code_with_terraform = var.manage_lambda_code_with_terraform
 }
 
 # ---------------------------------------------------------------------------
@@ -74,7 +75,8 @@ module "api_lambdas" {
   lambda_code_bucket = module.storage.lambda_code_bucket_name
   lambda_code_prefix = "api"
 
-  shared_execution_role_arn = local.lambda_role_arn
+  shared_execution_role_arn          = local.lambda_role_arn
+  manage_lambda_code_with_terraform = var.manage_lambda_code_with_terraform
 }
 
 # ---------------------------------------------------------------------------
@@ -99,7 +101,8 @@ module "cognito" {
   dynamodb_table_arn  = module.dynamodb.dynamodb_table_arn
   lambda_code_bucket  = module.storage.lambda_code_bucket_name
 
-  shared_execution_role_arn = local.lambda_role_arn
+  shared_execution_role_arn          = local.lambda_role_arn
+  manage_lambda_code_with_terraform = var.manage_lambda_code_with_terraform
 }
 
 # ---------------------------------------------------------------------------

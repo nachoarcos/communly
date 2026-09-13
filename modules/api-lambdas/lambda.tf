@@ -8,8 +8,14 @@ resource "aws_lambda_function" "this" {
   memory_size   = each.value.memory
   timeout       = each.value.timeout
 
-  s3_bucket = var.lambda_code_bucket
-  s3_key    = "${var.lambda_code_prefix}/${each.key}.zip"
+  # Dos formas mutuamente excluyentes de dar el codigo a Lambda: si
+  # manage_lambda_code_with_terraform=true, sube el zip empaquetado por
+  # Terraform (filename+hash); si no, referencia el objeto S3 que
+  # gestiona app-deploy.yml (flujo normal, ver placeholder.tf).
+  filename         = var.manage_lambda_code_with_terraform ? data.archive_file.source[each.key].output_path : null
+  source_code_hash = var.manage_lambda_code_with_terraform ? data.archive_file.source[each.key].output_base64sha256 : null
+  s3_bucket        = var.manage_lambda_code_with_terraform ? null : var.lambda_code_bucket
+  s3_key            = var.manage_lambda_code_with_terraform ? null : "${var.lambda_code_prefix}/${each.key}.zip"
 
   environment {
     variables = {
