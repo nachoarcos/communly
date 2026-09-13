@@ -9,12 +9,24 @@ from shared.auth import get_user_sub
 
 SHARD_COUNT = int(os.environ.get("FEED_SHARD_COUNT", "5"))
 _INTERNAL_KEYS = ("PK", "SK", "GSI1PK", "GSI1SK", "GSI2PK", "GSI2SK")
+MAX_TAGS = 10
 
 
 def shard_for(post_id):
     # Distribucion estable: el mismo post_id siempre cae en el mismo shard.
     digest = hashlib.md5(post_id.encode()).hexdigest()
     return int(digest[:8], 16) % SHARD_COUNT
+
+
+def normalize_tags(raw_tags):
+    if not isinstance(raw_tags, list):
+        return []
+    seen = []
+    for t in raw_tags:
+        tag = str(t).strip().lower()
+        if tag and tag not in seen:
+            seen.append(tag)
+    return seen[:MAX_TAGS]
 
 
 def handler(event, context):
@@ -30,6 +42,7 @@ def handler(event, context):
     title = body.get("title")
     body_markdown = body.get("bodyMarkdown")
     status = body.get("status", "draft")
+    tags = normalize_tags(body.get("tags"))
 
     if not title or not body_markdown:
         return err(400, "title y bodyMarkdown son obligatorios")
@@ -63,6 +76,7 @@ def handler(event, context):
         "title": title,
         "body_markdown": body_markdown,
         "status": status,
+        "tags": tags,
         "created_at": now,
         "updated_at": now,
         # Contador atomico, incrementado/decrementado por toggle_like
@@ -89,5 +103,25 @@ def handler(event, context):
         item["GSI1SK"] = f"PUBLISHED#{now}#{post_id}"
 
     table.put_item(Item=item, ConditionExpression="attribute_not_exists(PK)")
+
+    # Un item TAG# por cada tag, solo si el post nace publicado (mismo
+    # criterio sparse que GSI1: un borrador no debe aparecer en ninguna
+    # pagina publica, tampoco en /tags/{tag}).
+    if status == "published":
+        for tag in tags:
+            table.put_item(
+                Item={
+                    "PK": f"POST#{post_id}",
+                    "SK": f"TAG#{tag}",
+                    "post_id": post_id,
+                    "tag": tag,
+                    "title": title,
+                    "author_username": author_username,
+                    "author_avatar_url": author_avatar_url,
+                    "published_at": now,
+                    "GSI2PK": f"TAG#{tag}",
+                    "GSI2SK": f"POST#{now}#{post_id}",
+                }
+            )
 
     return ok({k: v for k, v in item.items() if k not in _INTERNAL_KEYS}, 201)

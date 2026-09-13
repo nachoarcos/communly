@@ -7,6 +7,7 @@ export default function EditPost() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [bodyMarkdown, setBodyMarkdown] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
   const [status, setStatus] = useState("draft");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -18,6 +19,7 @@ export default function EditPost() {
       .then((post) => {
         setTitle(post.title);
         setBodyMarkdown(post.body_markdown);
+        setTagsInput((post.tags || []).join(", "));
         setStatus(post.status);
         setLoaded(true);
       })
@@ -46,7 +48,11 @@ export default function EditPost() {
     setBusy(true);
     setError(null);
     try {
-      await updatePost(postId, { title, bodyMarkdown, status });
+      const tags = tagsInput
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      await updatePost(postId, { title, bodyMarkdown, status, tags });
       navigate(`/posts/${postId}`);
     } catch (e) {
       setError(e.message);
@@ -87,6 +93,16 @@ export default function EditPost() {
             value={bodyMarkdown}
             onChange={(e) => setBodyMarkdown(e.target.value)}
             required
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="tags">Tags (separados por comas)</label>
+          <input
+            id="tags"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="react, aws, tutoriales"
           />
         </div>
 

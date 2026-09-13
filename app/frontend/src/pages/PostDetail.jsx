@@ -137,6 +137,16 @@ export default function PostDetail() {
         <Markdown source={post.body_markdown} />
       </div>
 
+      {post.tags && post.tags.length > 0 && (
+        <div style={{ marginBottom: 20, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {post.tags.map((tag) => (
+            <Link key={tag} to={`/tags/${encodeURIComponent(tag)}`} className="tag-pill">
+              {tag}
+            </Link>
+          ))}
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 10, marginBottom: 30, alignItems: "center" }}>
         <span className="post-meta">
           {likeCount} {likeCount === 1 ? "me gusta" : "me gusta"}

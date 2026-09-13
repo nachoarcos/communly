@@ -188,7 +188,7 @@ locals {
       auth_required = true
       admin_only    = false
       statements = [
-        { sid = "UpdatePost", actions = ["dynamodb:GetItem", "dynamodb:UpdateItem"], resources = [local.table_arn], leading_keys = ["POST#*"] }
+        { sid = "UpdatePost", actions = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:DeleteItem"], resources = [local.table_arn], leading_keys = ["POST#*"] }
       ]
     }
 

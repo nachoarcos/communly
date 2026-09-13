@@ -6,6 +6,7 @@ export default function NewPost() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [bodyMarkdown, setBodyMarkdown] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
   const [status, setStatus] = useState("published");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -33,7 +34,11 @@ export default function NewPost() {
     setBusy(true);
     setError(null);
     try {
-      const post = await createPost({ title, bodyMarkdown, status });
+      const tags = tagsInput
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const post = await createPost({ title, bodyMarkdown, status, tags });
       navigate(`/posts/${post.post_id}`);
     } catch (e) {
       setError(e.message);
@@ -77,6 +82,16 @@ export default function NewPost() {
             value={bodyMarkdown}
             onChange={(e) => setBodyMarkdown(e.target.value)}
             required
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="tags">Tags (separados por comas)</label>
+          <input
+            id="tags"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="react, aws, tutoriales"
           />
         </div>
 
